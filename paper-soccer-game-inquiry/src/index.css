@@ -1,0 +1,317 @@
+@import "tailwindcss";
+
+/* next/font в оригинале подставляет --font-anton / --font-grotesk на <html>;
+ * здесь те же пары подключены ссылкой в index.html. */
+:root {
+  --font-anton: "Anton", "Arial Black", sans-serif;
+  --font-grotesk: "Space Grotesk", "Helvetica Neue", ui-sans-serif, sans-serif;
+}
+
+@theme {
+  --font-display: var(--font-anton), "Arial Black", sans-serif;
+  --font-body: var(--font-grotesk), "Helvetica Neue", ui-sans-serif, sans-serif;
+  --color-pitch: #0a0f0a;
+  --color-chalk: #f0ead6;
+  --color-blaze: #ff6a2a;
+  --color-neon: #9fe870;
+  --color-line: rgba(240, 234, 214, 0.14);
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  background: #050805;
+  color: var(--color-chalk);
+  font-family: var(--font-body);
+  overscroll-behavior: none;
+}
+
+::selection {
+  background: #9fe870;
+  color: #050805;
+}
+
+/* Calm cursor policy: arrow everywhere, hand only on real actions. */
+button:not(:disabled),
+[role="button"],
+label {
+  cursor: pointer;
+}
+button:disabled {
+  cursor: not-allowed;
+}
+input {
+  cursor: text;
+}
+
+/* ---------- texture helpers ---------- */
+.noise::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.5;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 0.05 0'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+.glass {
+  background: linear-gradient(160deg, rgba(16, 22, 16, 0.82), rgba(8, 12, 8, 0.9));
+  backdrop-filter: blur(14px);
+  border: 1px solid rgba(240, 234, 214, 0.1);
+}
+
+.display {
+  font-family: var(--font-display);
+  letter-spacing: 0.01em;
+  line-height: 0.92;
+  text-transform: uppercase;
+}
+
+.mono {
+  font-family: ui-monospace, "SFMono-Regular", Menlo, monospace;
+  font-feature-settings: "tnum";
+}
+
+/* ---------- keyframes ---------- */
+@keyframes rise {
+  from { opacity: 0; transform: translateY(26px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes goalpop {
+  0% { opacity: 0; transform: scale(0.4) rotate(-8deg); }
+  55% { opacity: 1; transform: scale(1.12) rotate(-3deg); }
+  100% { opacity: 1; transform: scale(1) rotate(-3deg); }
+}
+@keyframes pulsedot {
+  0%, 100% { opacity: 0.35; transform: scale(0.85); }
+  50% { opacity: 1; transform: scale(1.2); }
+}
+@keyframes streak {
+  0% { transform: translateX(-120%) skewX(-16deg); }
+  100% { transform: translateX(240%) skewX(-16deg); }
+}
+@keyframes breathe {
+  0%, 100% { opacity: 0.55; }
+  50% { opacity: 1; }
+}
+@keyframes coinspin {
+  0%   { transform: rotateY(0deg) scale(1); }
+  50%  { transform: rotateY(900deg) scale(1.25); }
+  100% { transform: rotateY(1800deg) scale(1); }
+}
+@keyframes tosstext {
+  0%, 60% { opacity: 0; transform: translateY(10px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+.coin-spin { animation: coinspin 1.25s cubic-bezier(0.25, 0.6, 0.3, 1) both; }
+.toss-text { animation: tosstext 0.5s 1.15s cubic-bezier(0.22, 1, 0.36, 1) both; }
+
+.anim-rise { animation: rise 0.7s cubic-bezier(0.22, 1, 0.36, 1) both; }
+.anim-rise-1 { animation: rise 0.7s 0.08s cubic-bezier(0.22, 1, 0.36, 1) both; }
+.anim-rise-2 { animation: rise 0.7s 0.16s cubic-bezier(0.22, 1, 0.36, 1) both; }
+.anim-rise-3 { animation: rise 0.7s 0.24s cubic-bezier(0.22, 1, 0.36, 1) both; }
+.anim-goal { animation: goalpop 0.55s cubic-bezier(0.22, 1.4, 0.36, 1) both; }
+.breathe { animation: breathe 2.2s ease-in-out infinite; }
+.pulse-dot { animation: pulsedot 1.6s ease-in-out infinite; }
+
+/* mode cards: плитка стоит на месте — никаких прыжков от нажатий внутри */
+.mode-card {
+  position: relative;
+  overflow: hidden;
+  transition: border-color 0.3s, background 0.3s;
+}
+.mode-card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 45%;
+  background: linear-gradient(100deg, transparent, rgba(240, 234, 214, 0.07), transparent);
+  transform: translateX(-120%) skewX(-16deg);
+  pointer-events: none;
+}
+.mode-card:hover::before { animation: streak 0.9s ease; }
+.mode-card:hover { border-color: rgba(159, 232, 112, 0.45); }
+
+/* Лёгкий отклик нажатия — только для настоящих кнопок, не для плиток. */
+button:not(:disabled):not(.mode-card) {
+  transition: transform 110ms cubic-bezier(0.22, 1, 0.36, 1), border-color 180ms, background-color 180ms, filter 180ms, box-shadow 180ms;
+}
+button:not(:disabled):not(.mode-card):active {
+  transform: scale(0.96);
+}
+
+/* thin scrollbars */
+.scroll-thin::-webkit-scrollbar { width: 5px; }
+.scroll-thin::-webkit-scrollbar-thumb { background: rgba(240, 234, 214, 0.18); border-radius: 3px; }
+.scroll-thin::-webkit-scrollbar-track { background: transparent; }
+
+/* outline title text */
+.text-stroke {
+  -webkit-text-stroke: 1.5px rgba(240, 234, 214, 0.55);
+  color: transparent;
+}
+
+/* канвас-обёртка: длинный телефонный лист скроллится, канвас — плоский слой */
+.game-canvas-wrap {
+  touch-action: manipulation;
+}
+.game-canvas-wrap canvas {
+  display: block;
+}
+
+/* Превью арены: высота фиксирована, ширина выводится из формы самого поля
+   (--ar = (cols-1)/(rows-1)). Узкий телефонный лист остаётся узким, квадратная
+   классика — квадратной; max-width не даёт широкому полю вылезти из карточки,
+   а aspect-ratio при этом пропорции не ломает. */
+.arena-prev {
+  display: block;
+  height: 55px;
+  aspect-ratio: var(--ar, 1);
+  max-width: 100%;
+  margin-inline: auto;
+}
+@media (min-width: 640px) {
+  .arena-prev {
+    height: 70px;
+  }
+}
+
+/* ---------- жеребьёвка: настоящая монета в 3D ---------- */
+.coin-stage {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 168px;
+  height: 168px;
+  perspective: 900px;
+}
+.coin-glow {
+  position: absolute;
+  inset: -30%;
+  pointer-events: none;
+  animation: breathe 2.4s ease-in-out infinite;
+}
+.coin-flipper {
+  position: relative;
+  width: 116px;
+  height: 116px;
+  transform-style: preserve-3d;
+  animation: coin-flip 1.25s cubic-bezier(0.25, 0.6, 0.3, 1) both;
+}
+.coin-face {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+.coin-face-back {
+  transform: rotateY(180deg);
+}
+/* Тень лежит вплотную под монетой и мягко растекается — никакой отдельной
+   пилюли под монетой не видно. */
+.coin-shadow {
+  position: absolute;
+  bottom: 11px;
+  width: 80px;
+  height: 12px;
+  border-radius: 50%;
+  background: radial-gradient(ellipse at center, rgba(0, 0, 0, 0.42), rgba(0, 0, 0, 0) 68%);
+  animation: coin-shadow 1.25s cubic-bezier(0.25, 0.6, 0.3, 1) both;
+}
+.coin-ring {
+  position: absolute;
+  width: 116px;
+  height: 116px;
+  border-radius: 50%;
+  border-width: 2px;
+  border-style: solid;
+  animation: coin-ring 0.9s ease-out both;
+}
+.coin-sparks {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+.coin-sparks i {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 5px;
+  height: 5px;
+  margin: -2.5px 0 0 -2.5px;
+  border-radius: 50%;
+  opacity: 0;
+  animation: coin-spark 0.85s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes coin-flip {
+  0% {
+    transform: rotateY(0deg) translateY(0) scale(0.9);
+  }
+  45% {
+    transform: rotateY(calc(var(--coin-end, 1800deg) * 0.5)) translateY(-52px) scale(1.14);
+  }
+  78% {
+    transform: rotateY(calc(var(--coin-end, 1800deg) * 0.86)) translateY(6px) scale(1.02);
+  }
+  100% {
+    transform: rotateY(var(--coin-end, 1800deg)) translateY(0) scale(1);
+  }
+}
+@keyframes coin-shadow {
+  0% {
+    transform: scale(0.8);
+    opacity: 0.55;
+  }
+  45% {
+    transform: scale(0.42);
+    opacity: 0.18;
+  }
+  78% {
+    transform: scale(1.05);
+    opacity: 0.65;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 0.5;
+  }
+}
+@keyframes coin-ring {
+  0% {
+    transform: scale(0.92);
+    opacity: 0.9;
+  }
+  100% {
+    transform: scale(1.85);
+    opacity: 0;
+  }
+}
+@keyframes coin-spark {
+  0% {
+    transform: rotate(var(--a)) translateX(46px) scale(1);
+    opacity: 0.95;
+  }
+  100% {
+    transform: rotate(var(--a)) translateX(96px) scale(0.15);
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .coin-flipper,
+  .coin-shadow,
+  .coin-ring,
+  .coin-sparks i,
+  .coin-glow {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+  }
+}
